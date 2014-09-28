@@ -15,6 +15,8 @@ import binascii
 import http.cookiejar
 from urllib.error import URLError,HTTPError
 from json.decoder import JSONObject
+from urllib.parse import urlsplit
+
 
 
 class Login:
@@ -32,7 +34,7 @@ class Login:
                "rsakv":"",  # 需要获取        ok
                "savestate":"0",
                "servertime":"",  # 需要获取  ok
-               "service":"miniblg",
+               "service":"miniblog",
                "sp":"",   #encrypted password   加密的密码
                "su":"",   #encode username  加密的用户名
                "url":"http://weibo.com/ajaxlogin.php?framelogin=1&callback=parent.sinaSSOController.feedBackUrlCallBack",
@@ -44,6 +46,7 @@ class Login:
             
     def baseEncode(self,username):
         self.encodedName = base64.b64encode(username,altchars = None)  #username must be bytes
+        #self.encodedName = str(self.encodedName)
         return self.encodedName
     def getRespond(self):
         requestUrl = "http://login.sina.com.cn/sso/prelogin.php?entry=weibo&callback=sinaSSOController.preloginCallBack&su=MTU4MzMxMjc2MjE%3D&rsakt=mod&checkpin=1&client=ssologin.js(v1.4.11)&_=1397635485617"
@@ -95,7 +98,7 @@ class Login:
 #        print(pubkey)    # public key
         encrypsw = rsa.encrypt(str.encode(info),pubkey)    #encrypt 
         password = binascii.b2a_hex(encrypsw)
-        password = str(password)
+        #password = str(password)
 #        print(password)
         return password
     def getmainurl(self):
@@ -104,8 +107,7 @@ class Login:
     def getcookie(self): 
         return self.cookiejar
     def savecookie(self):
-        return 
-    @property
+        return
     def login(self):
         name = self.userName.encode(encoding='utf_8', errors='strict')
         encodedName = self.baseEncode(name)  #must be bytes
@@ -136,6 +138,7 @@ class Login:
         data = urllib.parse.urlencode(self.postData, doseq = False)
         data = data.encode('utf-8')
         full_url = urllib.request.Request(url, data=data, headers=headers, origin_req_host=None, unverifiable=False)  #create post obj
+        print(type(full_url))
         try:
             respond1 = urllib.request.urlopen(full_url)
         except HTTPError as e:
@@ -143,20 +146,19 @@ class Login:
         result = respond1.getcode()
         if result >= 200 and result < 300:  #deal with state code
             result = respond1.read().decode('GBK')
-            result = str(result)  # string is encoded in unicode when using python
-            # print(result)
-            pattern = 'location\.replace\(\"(.*?)\"\)'
+            pattern = 'location\.replace\(\'(.*?)\'\)'
             role = re.compile(pattern, flags=0)
             result = role.findall(str(result))[0]
             if "retcode=0" in result:
                 print("login sucessfully")
-                #print(sRedirectData(result.decode("gbk")))
                 array = result.split("?")
-                print(urllib.unquote(array[1][4:]).decode('utf-8', 'replace').encode('gbk', 'replace'))
-                manUrl = urllib.unquote(array[1][4:]).decode('utf-8', 'replace').encode('gbk', 'replace')
+                #print(urllib.parse.unquote(array[1][4:],encoding='utf-8').encode('gbk', 'replace'))
+                manUrl = urllib.parse.unquote(array[1][4:],encoding='utf-8').encode('gbk', 'replace')
+                manUrl = manUrl.decode()
                 respond2 = urllib.request.urlopen(manUrl)
-                print(respond2.read())
-                #print(urllib2.urlopen("http://weibo.com/u/1949648361/home?wvr=5").read())
+                # print(respond2.read().decode())
+                # print(urllib.request.urlopen("http://weibo.com/u/1949648361/home?wvr=5").read().decode())
+                return
             else:
                 print("longin error")
         else:

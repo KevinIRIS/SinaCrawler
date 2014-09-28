@@ -8,9 +8,10 @@ import gzip
 _DEFAULT_TIMEOUT = 30
 class Fetcher:
     def __init__(self,cookie = None):
-        self.cookie = cookie
-        self.openner = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(self.cookie),urllib.request.HTTPHandler)
-        urllib.request.install_opener(self.openner)
+        # self.cookie = cookie
+        # self.openner = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(self.cookie),urllib.request.HTTPHandler)
+        # urllib.request.install_opener(self.openner)
+        pass
     def unzip(self,content):
         file = gzip.open(filename=content, mode="rb")
         try:
@@ -20,5 +21,5 @@ class Fetcher:
     def fetch(self,url):
         print ('fetching url:' , url)
         content = urllib.request.urlopen(url,data=None,timeout=_DEFAULT_TIMEOUT)
-        return urllib.request.urlopen(url, data=None,timeout=30).read()
+        return content.read()
 
